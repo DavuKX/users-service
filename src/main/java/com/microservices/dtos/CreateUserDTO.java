@@ -1,36 +1,36 @@
 package com.microservices.dtos;
 
 public class CreateUserDTO {
-    private String name;
-    private String lastName;
-    private String email;
-    private String password;
+    private String nombre;
+    private String apellido;
+    private String correo;
+    private String contrasena;
     private String rol;
 
     public CreateUserDTO() {}
 
-    public CreateUserDTO(String name, String lastName, String email, String password, String rol) {
-        this.name = name;
-        this.lastName = lastName;
-        this.email = email;
-        this.password = password;
+    public CreateUserDTO(String nombre, String apellido, String correo, String contrasena, String rol) {
+        this.nombre = nombre;
+        this.apellido = apellido;
+        this.correo = correo;
+        this.contrasena = contrasena;
         this.rol = rol;
     }
 
-    public String getName() {
-        return name;
+    public String getNombre() {
+        return nombre;
     }
 
-    public String getLastName() {
-        return lastName;
+    public String getApellido() {
+        return apellido;
     }
 
-    public String getEmail() {
-        return email;
+    public String getCorreo() {
+        return correo;
     }
 
-    public String getPassword() {
-        return password;
+    public String getContrasena() {
+        return contrasena;
     }
 
     public String getRol() {
