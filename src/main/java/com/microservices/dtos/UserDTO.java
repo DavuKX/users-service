@@ -2,16 +2,16 @@ package com.microservices.dtos;
 
 public class UserDTO {
     private final int id;
-    private final String name;
-    private final String lastName;
-    private final String email;
+    private final String nombre;
+    private final String apellido;
+    private final String correo;
     private final String rol;
 
-    public UserDTO(int id, String name, String lastName, String email, String rol) {
+    public UserDTO(int id, String nombre, String apellido, String correo, String rol) {
         this.id = id;
-        this.name = name;
-        this.lastName = lastName;
-        this.email = email;
+        this.nombre = nombre;
+        this.apellido = apellido;
+        this.correo = correo;
         this.rol = rol;
     }
 
@@ -19,16 +19,16 @@ public class UserDTO {
         return id;
     }
 
-    public String getName() {
-        return name;
+    public String getNombre() {
+        return nombre;
     }
 
-    public String getLastName() {
-        return lastName;
+    public String getApellido() {
+        return apellido;
     }
 
-    public String getEmail() {
-        return email;
+    public String getCorreo() {
+        return correo;
     }
 
     public String getRol() {

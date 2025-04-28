@@ -59,9 +59,89 @@ public class UserController extends HttpServlet {
     }
 
     @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        setCorsHeaders(resp);
+        resp.setContentType("application/json");
+
+        String pathInfo = req.getPathInfo();
+
+        try {
+            if (pathInfo == null || pathInfo.equals("/")) {
+                // GET /api/auth
+                resp.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+                resp.getWriter().write("{\"error\": \"Para obtener un usuario, especifique el ID\"}");
+            } else {
+                // GET /api/auth/{id}
+                int id = Integer.parseInt(pathInfo.substring(1));
+                User user = userDAO.getUserById(id);
+
+                if (user != null) {
+                    resp.setStatus(HttpServletResponse.SC_OK);
+                    mapper.writeValue(resp.getWriter(), user);
+                } else {
+                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    resp.getWriter().write("{\"error\": \"Usuario no encontrado\"}");
+                }
+            }
+        } catch (NumberFormatException e) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().write("{\"error\": \"ID de usuario inválido. Debe ser un número\"}");
+        } catch (SQLException | ClassNotFoundException e) {
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            resp.getWriter().write("{\"error\": \"" + e.getMessage() + "\"}");
+        }
+    }
+
+    @Override
     protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         setCorsHeaders(resp);
         resp.setStatus(HttpServletResponse.SC_OK);
+    }
+
+    @Override
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        setCorsHeaders(resp);
+        resp.setContentType("application/json");
+
+        String pathInfo = req.getPathInfo();
+
+        try {
+            if (pathInfo == null || pathInfo.equals("/")) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write("{\"error\": \"Se requiere el ID del usuario\"}");
+                return;
+            }
+
+            int id = Integer.parseInt(pathInfo.substring(1));
+
+            User updatedData = mapper.readValue(req.getReader(), User.class);
+
+            if (updatedData.getId() != id) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write("{\"error\": \"El ID del usuario no coincide\"}");
+                return;
+            }
+
+            User existingUser = userDAO.getUserById(id);
+
+            if (existingUser == null) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                resp.getWriter().write("{\"error\": \"Usuario no encontrado\"}");
+                return;
+            }
+
+            User updatedUser = userDAO.updateUser(updatedData);
+
+            resp.setStatus(HttpServletResponse.SC_OK);
+            mapper.writeValue(resp.getWriter(), updatedUser);
+
+        } catch (NumberFormatException e) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().write("{\"error\": \"ID de usuario inválido\"}");
+        } catch (SQLException | ClassNotFoundException e) {
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            resp.getWriter().write("{\"error\": \"" + e.getMessage() + "\"}");
+        }
     }
 
     private void handleRegister(HttpServletRequest req, HttpServletResponse resp) throws IOException {

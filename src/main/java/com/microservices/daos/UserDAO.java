@@ -67,7 +67,7 @@ public class UserDAO {
         }
     }
 
-    private User getUserById(int userId) throws SQLException, ClassNotFoundException {
+    public User getUserById(int userId) throws SQLException, ClassNotFoundException {
         try (Connection connection = DatabaseConnection.getInstance().getConnection();
              PreparedStatement stmt = connection.prepareStatement(
                      "SELECT id, nombre, apellido, correo, contrasena, rol FROM usuario WHERE id = ?"
@@ -86,7 +86,30 @@ public class UserDAO {
                 user.setRol(rs.getString("rol"));
                 return user;
             } else {
-                return null; // Si no se encuentra el usuario
+                return null;
+            }
+        }
+    }
+
+    public User updateUser(User user) throws SQLException, ClassNotFoundException {
+        try (Connection connection = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = connection.prepareStatement(
+                     "UPDATE usuario SET nombre = ?, apellido = ?, correo = ?, contrasena = ?, rol = ? WHERE id = ?"
+             )) {
+
+            stmt.setString(1, user.getNombre());
+            stmt.setString(2, user.getApellido());
+            stmt.setString(3, user.getCorreo());
+            stmt.setString(4, user.getContrasena());
+            stmt.setString(5, user.getRol());
+            stmt.setInt(6, user.getId());
+
+            int affectedRows = stmt.executeUpdate();
+
+            if (affectedRows > 0) {
+                return getUserById(user.getId());
+            } else {
+                return null;
             }
         }
     }
