@@ -8,13 +8,21 @@ public class DatabaseConnection {
     private static DatabaseConnection instance;
     private final Connection connection;
 
-    private static final String URL = "jdbc:postgresql://localhost:5432/user_service";
-    private static final String USER = "postgres";
-    private static final String PASSWORD = "password";
-
     private DatabaseConnection() throws SQLException, ClassNotFoundException {
         Class.forName("org.postgresql.Driver");
-        this.connection = DriverManager.getConnection(URL, USER, PASSWORD);
+
+        String url = System.getenv("DB_URL");
+        String user = System.getenv("DB_USERNAME");
+        String password = System.getenv("DB_PASSWORD");
+
+        if (url == null || user == null || password == null) {
+
+            url = "jdbc:postgresql://localhost:5432/user_service";
+            user = "postgres";
+            password = "password";
+        }
+
+        this.connection = DriverManager.getConnection(url, user, password);
     }
 
     public Connection getConnection() {
