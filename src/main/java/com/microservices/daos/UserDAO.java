@@ -9,12 +9,14 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserDAO {
     public User save(CreateUserDTO userDTO) throws SQLException, ClassNotFoundException {
         try (Connection connection = DatabaseConnection.getInstance().getConnection();
              PreparedStatement stmt = connection.prepareStatement(
-                     "INSERT INTO usuario (nombre, apellido, correo, contrasena, rol) VALUES (?, ?, ?, ?, ?)",
+                     "INSERT INTO usuario (nombre, apellido, correo, contrasena, rol, estado) VALUES (?, ?, ?, ?, ?, ?)",
                      PreparedStatement.RETURN_GENERATED_KEYS // Esto es importante para obtener el ID generado
              )) {
 
@@ -23,6 +25,7 @@ public class UserDAO {
             stmt.setString(3, userDTO.getCorreo());
             stmt.setString(4, userDTO.getContrasena());
             stmt.setString(5, userDTO.getRol());
+            stmt.setString(6, "activo");
 
             int affectedRows = stmt.executeUpdate();
 
@@ -70,7 +73,7 @@ public class UserDAO {
     public User getUserById(int userId) throws SQLException, ClassNotFoundException {
         try (Connection connection = DatabaseConnection.getInstance().getConnection();
              PreparedStatement stmt = connection.prepareStatement(
-                     "SELECT id, nombre, apellido, correo, contrasena, rol FROM usuario WHERE id = ?"
+                     "SELECT id, nombre, apellido, correo, contrasena, rol, estado FROM usuario WHERE id = ?"
              )) {
             stmt.setInt(1, userId);
 
@@ -84,6 +87,7 @@ public class UserDAO {
                 user.setCorreo(rs.getString("correo"));
                 user.setContrasena(rs.getString("contrasena"));
                 user.setRol(rs.getString("rol"));
+                user.setEstado(rs.getString("estado"));
                 return user;
             } else {
                 return null;
@@ -91,10 +95,35 @@ public class UserDAO {
         }
     }
 
+    public List<User> getAllUsers() throws SQLException, ClassNotFoundException {
+        List<User> users = new ArrayList<>();
+
+        try (Connection connection = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = connection.prepareStatement(
+                     "SELECT id, nombre, apellido, correo, contrasena, rol, estado FROM usuario"
+             )) {
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                User user = new User();
+                user.setId(rs.getInt("id"));
+                user.setNombre(rs.getString("nombre"));
+                user.setApellido(rs.getString("apellido"));
+                user.setCorreo(rs.getString("correo"));
+                user.setContrasena(rs.getString("contrasena"));
+                user.setRol(rs.getString("rol"));
+                user.setEstado(rs.getString("estado"));
+                users.add(user);
+            }
+        }
+
+        return users;
+    }
+
     public User updateUser(User user) throws SQLException, ClassNotFoundException {
         try (Connection connection = DatabaseConnection.getInstance().getConnection();
              PreparedStatement stmt = connection.prepareStatement(
-                     "UPDATE usuario SET nombre = ?, apellido = ?, correo = ?, contrasena = ?, rol = ? WHERE id = ?"
+                     "UPDATE usuario SET nombre = ?, apellido = ?, correo = ?, contrasena = ?, rol = ?, estado = ? WHERE id = ?"
              )) {
 
             stmt.setString(1, user.getNombre());
@@ -102,7 +131,8 @@ public class UserDAO {
             stmt.setString(3, user.getCorreo());
             stmt.setString(4, user.getContrasena());
             stmt.setString(5, user.getRol());
-            stmt.setInt(6, user.getId());
+            stmt.setString(6, user.getEstado());
+            stmt.setInt(7, user.getId());
 
             int affectedRows = stmt.executeUpdate();
 

@@ -8,6 +8,7 @@ public class User {
     private String correo;
     private String contrasena;
     private String rol;
+    private String estado;
 
     public int getId() {
         return id;
@@ -55,5 +56,13 @@ public class User {
 
     public void setRol(String rol) {
         this.rol = rol;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
     }
 }

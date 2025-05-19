@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.List;
 
 @WebServlet("/api/auth/*")
 public class UserController extends HttpServlet {
@@ -67,25 +68,32 @@ public class UserController extends HttpServlet {
 
         try {
             if (pathInfo == null || pathInfo.equals("/")) {
-                // GET /api/auth
-                resp.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-                resp.getWriter().write("{\"error\": \"Para obtener un usuario, especifique el ID\"}");
+                // GET /api/auth - Devuelve todos los usuarios
+                List<User> users = userDAO.getAllUsers();
+                resp.setStatus(HttpServletResponse.SC_OK);
+                mapper.writeValue(resp.getWriter(), users);
+            } else if (pathInfo.equals("/all")) {
+                // GET /api/auth/all - Endpoint alternativo para obtener todos los usuarios
+                List<User> users = userDAO.getAllUsers();
+                resp.setStatus(HttpServletResponse.SC_OK);
+                mapper.writeValue(resp.getWriter(), users);
             } else {
-                // GET /api/auth/{id}
-                int id = Integer.parseInt(pathInfo.substring(1));
-                User user = userDAO.getUserById(id);
+                try {
+                    int id = Integer.parseInt(pathInfo.substring(1));
+                    User user = userDAO.getUserById(id);
 
-                if (user != null) {
-                    resp.setStatus(HttpServletResponse.SC_OK);
-                    mapper.writeValue(resp.getWriter(), user);
-                } else {
-                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                    resp.getWriter().write("{\"error\": \"Usuario no encontrado\"}");
+                    if (user != null) {
+                        resp.setStatus(HttpServletResponse.SC_OK);
+                        mapper.writeValue(resp.getWriter(), user);
+                    } else {
+                        resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                        resp.getWriter().write("{\"error\": \"Usuario no encontrado\"}");
+                    }
+                } catch (NumberFormatException e) {
+                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    resp.getWriter().write("{\"error\": \"Ruta no válida\"}");
                 }
             }
-        } catch (NumberFormatException e) {
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write("{\"error\": \"ID de usuario inválido. Debe ser un número\"}");
         } catch (SQLException | ClassNotFoundException e) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             resp.getWriter().write("{\"error\": \"" + e.getMessage() + "\"}");
