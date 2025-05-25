@@ -17,7 +17,7 @@ public class DatabaseConnection {
 
         if (url == null || user == null || password == null) {
 
-            url = "jdbc:postgresql://localhost:5432/user_service";
+            url = "jdbc:postgresql://localhost:5434/users_db";
             user = "postgres";
             password = "password";
         }

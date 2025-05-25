@@ -7,6 +7,8 @@ create table usuario
     correo     varchar(255) not null
         unique,
     contrasena varchar(255) not null,
-    rol        varchar(255) not null
+    rol        varchar(255) not null,
+    estado     varchar(255) not null
+        default 'activo'
 );
 
