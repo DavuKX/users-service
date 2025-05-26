@@ -2,7 +2,7 @@ package com.microservices.controllers.handlers;
 
 import com.microservices.daos.IUserDAO;
 import com.microservices.daos.UserDAO;
-import com.microservices.helpers.JsonResponseHelper;
+import com.microservices.factories.JsonResponseFactory;
 import com.microservices.models.User;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,6 +24,6 @@ public class GetAllStrategy implements IRequestHandlerStrategy {
     @Override
     public void handle(HttpServletRequest req, HttpServletResponse resp) throws Exception {
         List<User> users = userDAO.getAllUsers();
-        JsonResponseHelper.writeJson(resp, HttpServletResponse.SC_OK, users);
+        JsonResponseFactory.writeJson(resp, HttpServletResponse.SC_OK, users);
     }
 }

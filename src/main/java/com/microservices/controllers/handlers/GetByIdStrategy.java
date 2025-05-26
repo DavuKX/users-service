@@ -2,7 +2,7 @@ package com.microservices.controllers.handlers;
 
 import com.microservices.daos.IUserDAO;
 import com.microservices.daos.UserDAO;
-import com.microservices.helpers.JsonResponseHelper;
+import com.microservices.factories.JsonResponseFactory;
 import com.microservices.models.User;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -26,9 +26,9 @@ public class GetByIdStrategy implements IRequestHandlerStrategy {
         User user = userDAO.getUserById(id);
 
         if (user != null) {
-            JsonResponseHelper.writeJson(resp, HttpServletResponse.SC_OK, user);
+            JsonResponseFactory.writeJson(resp, HttpServletResponse.SC_OK, user);
         } else {
-            JsonResponseHelper.writeError(resp, HttpServletResponse.SC_NOT_FOUND, "Usuario no encontrado");
+            JsonResponseFactory.writeError(resp, HttpServletResponse.SC_NOT_FOUND, "Usuario no encontrado");
         }
     }
 }

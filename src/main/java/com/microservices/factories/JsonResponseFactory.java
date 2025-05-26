@@ -1,11 +1,11 @@
-package com.microservices.helpers;
+package com.microservices.factories;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
-public class JsonResponseHelper {
+public class JsonResponseFactory {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     public static void writeJson(HttpServletResponse resp, int status, Object body) throws IOException {

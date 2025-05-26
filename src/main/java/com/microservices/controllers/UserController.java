@@ -9,7 +9,7 @@ import com.microservices.daos.UserDAO;
 import com.microservices.dtos.CreateUserDTO;
 import com.microservices.dtos.LoginUserDTO;
 import com.microservices.dtos.UserDTO;
-import com.microservices.helpers.JsonResponseHelper;
+import com.microservices.factories.JsonResponseFactory;
 import com.microservices.models.User;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -47,7 +47,7 @@ public class UserController extends HttpServlet {
         String path = req.getPathInfo();
 
         if (path == null) {
-            JsonResponseHelper.writeError(resp, HttpServletResponse.SC_NOT_FOUND, "Ruta no encontrada");
+            JsonResponseFactory.writeError(resp, HttpServletResponse.SC_NOT_FOUND, "Ruta no encontrada");
             return;
         }
 
@@ -59,7 +59,7 @@ public class UserController extends HttpServlet {
                 handleLogin(req, resp);
                 break;
             default:
-                JsonResponseHelper.writeError(resp, HttpServletResponse.SC_NOT_FOUND, "Ruta no encontrada");
+                JsonResponseFactory.writeError(resp, HttpServletResponse.SC_NOT_FOUND, "Ruta no encontrada");
                 break;
         }
     }
@@ -79,11 +79,11 @@ public class UserController extends HttpServlet {
                 }
             }
 
-            JsonResponseHelper.writeError(resp, HttpServletResponse.SC_NOT_FOUND, "Ruta no encontrada");
+            JsonResponseFactory.writeError(resp, HttpServletResponse.SC_NOT_FOUND, "Ruta no encontrada");
         } catch (SQLException | ClassNotFoundException e) {
-            JsonResponseHelper.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+            JsonResponseFactory.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         } catch (Exception e) {
-            JsonResponseHelper.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "Error al procesar la solicitud");
+            JsonResponseFactory.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "Error al procesar la solicitud");
         }
     }
 
@@ -102,7 +102,7 @@ public class UserController extends HttpServlet {
 
         try {
             if (pathInfo == null || pathInfo.equals("/")) {
-                JsonResponseHelper.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "Se requiere el ID del usuario");
+                JsonResponseFactory.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "Se requiere el ID del usuario");
                 return;
             }
 
@@ -110,25 +110,25 @@ public class UserController extends HttpServlet {
             User updatedData = mapper.readValue(req.getReader(), User.class);
 
             if (updatedData.getId() != id) {
-                JsonResponseHelper.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "El ID del usuario no coincide");
+                JsonResponseFactory.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "El ID del usuario no coincide");
                 return;
             }
 
             User existingUser = userDAO.getUserById(id);
 
             if (existingUser == null) {
-                JsonResponseHelper.writeError(resp, HttpServletResponse.SC_NOT_FOUND, "Usuario no encontrado");
+                JsonResponseFactory.writeError(resp, HttpServletResponse.SC_NOT_FOUND, "Usuario no encontrado");
                 return;
             }
 
             User updatedUser = userDAO.updateUser(updatedData);
-            JsonResponseHelper.writeJson(resp, HttpServletResponse.SC_OK, updatedUser);
+            JsonResponseFactory.writeJson(resp, HttpServletResponse.SC_OK, updatedUser);
         } catch (NumberFormatException e) {
-            JsonResponseHelper.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "ID de usuario inválido");
+            JsonResponseFactory.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "ID de usuario inválido");
         } catch (SQLException | ClassNotFoundException e) {
-            JsonResponseHelper.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+            JsonResponseFactory.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         } catch (Exception e) {
-            JsonResponseHelper.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "Error al procesar la solicitud");
+            JsonResponseFactory.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "Error al procesar la solicitud");
         }
     }
 
@@ -141,9 +141,9 @@ public class UserController extends HttpServlet {
             resp.setStatus(HttpServletResponse.SC_CREATED);
             mapper.writeValue(resp.getWriter(), user);
         } catch (SQLException | ClassNotFoundException e) {
-            JsonResponseHelper.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+            JsonResponseFactory.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
         } catch (Exception e) {
-            JsonResponseHelper.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Ha ocurrido un error, intente más tarde");
+            JsonResponseFactory.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Ha ocurrido un error, intente más tarde");
         }
     }
 
@@ -154,14 +154,14 @@ public class UserController extends HttpServlet {
             UserDTO user = userDAO.authenticate(loginRequest.getEmail(), loginRequest.getPassword());
 
             if (user != null) {
-                JsonResponseHelper.writeJson(resp, HttpServletResponse.SC_OK, user);
+                JsonResponseFactory.writeJson(resp, HttpServletResponse.SC_OK, user);
             } else {
-                JsonResponseHelper.writeError(resp, HttpServletResponse.SC_UNAUTHORIZED, "Correo o contraseña incorrecta");
+                JsonResponseFactory.writeError(resp, HttpServletResponse.SC_UNAUTHORIZED, "Correo o contraseña incorrecta");
             }
         } catch (SQLException | ClassNotFoundException e) {
-            JsonResponseHelper.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+            JsonResponseFactory.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         } catch (Exception e) {
-            JsonResponseHelper.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "Error al procesar la solicitud");
+            JsonResponseFactory.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "Error al procesar la solicitud");
         }
     }
 }
