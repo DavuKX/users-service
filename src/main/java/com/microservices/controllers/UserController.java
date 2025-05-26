@@ -1,6 +1,10 @@
 package com.microservices.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microservices.controllers.handlers.GetAllStrategy;
+import com.microservices.controllers.handlers.GetByIdStrategy;
+import com.microservices.controllers.handlers.IRequestHandlerStrategy;
+import com.microservices.daos.IUserDAO;
 import com.microservices.daos.UserDAO;
 import com.microservices.dtos.CreateUserDTO;
 import com.microservices.dtos.LoginUserDTO;
@@ -14,17 +18,21 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 @WebServlet("/api/auth/*")
 public class UserController extends HttpServlet {
     private ObjectMapper mapper;
-    private UserDAO userDAO;
+    private IUserDAO userDAO;
+    private final List<IRequestHandlerStrategy> getHandlers = new ArrayList<>();
 
     @Override
     public void init() {
         mapper = new ObjectMapper();
         userDAO = new UserDAO();
+        getHandlers.add(new GetAllStrategy());
+        getHandlers.add(new GetByIdStrategy());
     }
 
     private void setCorsHeaders(HttpServletResponse resp) {
@@ -36,7 +44,6 @@ public class UserController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         setCorsHeaders(resp);
-
         String path = req.getPathInfo();
 
         if (path == null) {
@@ -65,33 +72,17 @@ public class UserController extends HttpServlet {
         String pathInfo = req.getPathInfo();
 
         try {
-            if (pathInfo == null || pathInfo.equals("/")) {
-                // GET /api/auth - Devuelve todos los usuarios
-                List<User> users = userDAO.getAllUsers();
-                JsonResponseHelper.writeJson(resp, HttpServletResponse.SC_OK, users);
-            } else if (pathInfo.equals("/all")) {
-                // GET /api/auth/all - Endpoint alternativo para obtener todos los usuarios
-                List<User> users = userDAO.getAllUsers();
-                resp.setStatus(HttpServletResponse.SC_OK);
-                mapper.writeValue(resp.getWriter(), users);
-            } else {
-                try {
-                    int id = Integer.parseInt(pathInfo.substring(1));
-                    User user = userDAO.getUserById(id);
-
-                    if (user != null) {
-                        resp.setStatus(HttpServletResponse.SC_OK);
-                        mapper.writeValue(resp.getWriter(), user);
-                    } else {
-                        JsonResponseHelper.writeError(resp, HttpServletResponse.SC_NOT_FOUND, "Usuario no encontrado");
-                    }
-                } catch (NumberFormatException e) {
-                    JsonResponseHelper.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "Ruta no válida");
+            for (IRequestHandlerStrategy handler : getHandlers) {
+                if (handler.canHandle(pathInfo)) {
+                    handler.handle(req, resp);
+                    return;
                 }
             }
+
+            JsonResponseHelper.writeError(resp, HttpServletResponse.SC_NOT_FOUND, "Ruta no encontrada");
         } catch (SQLException | ClassNotFoundException e) {
             JsonResponseHelper.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-        } catch (IOException e) {
+        } catch (Exception e) {
             JsonResponseHelper.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "Error al procesar la solicitud");
         }
     }
@@ -116,7 +107,6 @@ public class UserController extends HttpServlet {
             }
 
             int id = Integer.parseInt(pathInfo.substring(1));
-
             User updatedData = mapper.readValue(req.getReader(), User.class);
 
             if (updatedData.getId() != id) {
@@ -132,15 +122,12 @@ public class UserController extends HttpServlet {
             }
 
             User updatedUser = userDAO.updateUser(updatedData);
-
-            resp.setStatus(HttpServletResponse.SC_OK);
-            mapper.writeValue(resp.getWriter(), updatedUser);
-
+            JsonResponseHelper.writeJson(resp, HttpServletResponse.SC_OK, updatedUser);
         } catch (NumberFormatException e) {
             JsonResponseHelper.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "ID de usuario inválido");
         } catch (SQLException | ClassNotFoundException e) {
             JsonResponseHelper.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-        } catch (IOException e) {
+        } catch (Exception e) {
             JsonResponseHelper.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "Error al procesar la solicitud");
         }
     }
@@ -173,6 +160,8 @@ public class UserController extends HttpServlet {
             }
         } catch (SQLException | ClassNotFoundException e) {
             JsonResponseHelper.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+        } catch (Exception e) {
+            JsonResponseHelper.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "Error al procesar la solicitud");
         }
     }
 }
